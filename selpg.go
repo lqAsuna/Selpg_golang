@@ -20,14 +20,6 @@ type selpg struct {
 	out_file string
 }
 
-func main() {
-	args := new(selpg)
-	get_args(args)
-	if check_for_args(args) {
-		input(args)
-	}
-}
-
 func get_args(args *selpg) {
 	/*flag.IntVar(&bnFlag, "bn", 3, "份数") */
 	flag.IntVar(&(args.start), "s", -1, "The start page number")
@@ -84,10 +76,16 @@ func check_for_args(args *selpg) bool {
 }
 
 func input(args *selpg) {
+	/* io.Reader
+	io.WriterTo
+	io.ByteScanner
+	io.RuneScanner*/
 	var in_path *bufio.Reader
 	if args.in_file == "" {
+		/*inputReader = bufio.NewReader(os.Stdin)*/
 		in_path = bufio.NewReader(os.Stdin)
 	} else {
+		/*func OpenFile(name string, flag int, perm FileMode) (file *File, err error)*/
 		input_file, err := os.OpenFile(args.in_file, os.O_RDWR, 0644)
 		if err != nil {
 			erro := "error occurs in inputfilapath"
@@ -97,14 +95,22 @@ func input(args *selpg) {
 		in_path = bufio.NewReader(input_file)
 	}
 	
+	/*Files: []*os.File{os.Stdin, os.Stdout, os.Stderr}*/
+	/*	Stdin  = NewFile(uintptr(syscall.Stdin), "/dev/stdin")
+		Stdout = NewFile(uintptr(syscall.Stdout), "/dev/stdout")
+		Stderr = NewFile(uintptr(syscall.Stderr), "/dev/stderr")*/
 	var out_path *os.File
 	var err error
 	if args.out_file != "" {
+		/*func OpenFile(name string, flag int, perm FileMode) (file *File, err error)*/
+		/*O_RDWR也就是说用读写的权限，O_CREATE然后文件存在忽略，不存在创建它，O_TRUNC文件存在截取长度为0*/
 		out_path, err = os.OpenFile(args.out_file, os.O_RDWR|os.O_TRUNC|os.O_CREATE, 0644)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "error=>", "-d must must a valid command that need input")
+			fmt.Fprintln(os.Stderr, "Error:", "-d must must a valid command that need input")
 		}
 	} else {
+		/*struct的指针对象可以赋值为 nil 或与 nil 进行判等*/
+		/*接口对象和接口对象的指针都可以赋值为 nil*/
 		out_path = nil
 	}
 	selpg_IO(in_path, out_path, args)
@@ -119,66 +125,90 @@ func selpg_IO(in_path *bufio.Reader, out_path *os.File, args *selpg) {
 }
 
 func type1(in_path *bufio.Reader, out_path *os.File, args *selpg) {
+	/*type WriteCloser interface { Writer Closer }*/
+	/*type Writer interface { Write(p []byte) (n int, err error)*/
+	/*type Closer interface { Close() error }*/
 	var std_input io.WriteCloser
+	/*type Cmd　表示一个正在准备或者正在运行的外部命令*/
 	var cmd *exec.Cmd
+
 	var err error
 	if args.out_file != "" {
+		/*func Command(name string, arg ...string) *Cmd*/
 		cmd = exec.Command(args.out_file)
+		/*StdinPipe返回一个连接到command标准输入的管道pipe*/
 		std_input, err = cmd.StdinPipe()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error:", "error occurs in out_path")
 		}
 	}
+	/*num:字符数量*/
 	num := args.end - args.start + 1
 	for i := 1; i < args.start; i++ {
 		for j := 0; j < args.page_len; j++ {
+			/* line, err := buff.ReadString('\n') //以'\n'为结束符读入一行*/
 			in_path.ReadString('\n')
 		}
 	}
 	for i := 0; i < num; i++ {
 		for j := 0; j < args.page_len; j++ {
-			line, err := in_path.ReadString('\n')
+			/* line, err := buff.ReadString('\n') //以'\n'为结束符读入一行*/
+			lh, err := in_path.ReadString('\n')
 			if err != nil {
 				fmt.Fprintln(os.Stderr, "Error:", "error occurs in out_path")
 				return
 			}
 			if args.out_file != "" {
-				_, err = std_input.Write([]byte(line))
+				_, err = std_input.Write([]byte(lh))
 				if err != nil {
 					fmt.Fprintln(os.Stderr, "Error:", "line is not enough")
 				}					
 			}
 			if out_path != nil {
-				out_path.WriteString(line)
+				/*n3,err := f.WriteString(String)*/
+				out_path.WriteString(lh)
 			} else {
-				fmt.Print(line)
+				fmt.Print(lh)
 			}
 		}
 	}
+	/*cmd := exec.Command("tr", "a-z", "A-Z")  
+    cmd.Stdin = strings.NewReader("some input")  
+    var out bytes.Buffer  
+    cmd.Stdout = &out  
+    err := cmd.Run()  */
 	if args.out_file != "" {
 		std_input.Close()
 		cmd.Stdout = os.Stdout
-		cmd.Run()
+		err := cmd.Run()
 	}
 }
 
 func type2(in_path *bufio.Reader, out_path *os.File, args *selpg) {
+	/*type WriteCloser interface { Writer Closer }*/
+	/*type Writer interface { Write(p []byte) (n int, err error)*/
+	/*type Closer interface { Close() error }*/
+	var std_input io.WriteCloser
 	var std_input io.WriteCloser
 	var cmd *exec.Cmd
 	var err error
 	if args.out_file != "" {
+		/*func Command(name string, arg ...string) *Cmd*/
 		cmd = exec.Command(args.out_file)
+		/*StdinPipe返回一个连接到command标准输入的管道pipe*/
 		std_input, err = cmd.StdinPipe()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error:", "error occurs in out_path")
 		}
 	}
+	/*num:字符数量*/
 	num := args.end - args.start + 1
 	for i := 1; i < args.start; i++ {
 		in_path.ReadString('\f')
 	}
 	for i := 0; i < num; i++ {
-		line, err := in_path.ReadString('\f')
+		/* line, err := buff.ReadString('\f') //以'\f'为结束符读入一行*/
+		lh, err := in_path.ReadString('\f')
 		if err != nil {
 			err := "page is not enough"
 			e := errors.New(err)
@@ -186,21 +216,35 @@ func type2(in_path *bufio.Reader, out_path *os.File, args *selpg) {
 			return
 		}
 		if args.out_file != "" {
-			_, e := std_input.Write([]byte(line))
+			/*Write([]byte(String)) 它是阻塞的*/
+			_, e := std_input.Write([]byte(lh))
 			if e != nil {
 				fmt.Fprint(os.Stderr, "Error:", e.Error())
 			}
 			continue
 		}
 		if out_path != nil {
-			out_path.WriteString(line)
+			out_path.WriteString(lh)
 		} else {
-			fmt.Print(line)
+			fmt.Print(lh)
 		}
 	}
+	/*cmd := exec.Command("tr", "a-z", "A-Z")  
+    cmd.Stdin = strings.NewReader("some input")  
+    var out bytes.Buffer  
+    cmd.Stdout = &out  
+    err := cmd.Run()  */
 	if args.out_file != "" {
 		std_input.Close()
 		cmd.Stdout = os.Stdout
 		cmd.Run()
+	}
+}
+
+func main() {
+	args := new(selpg)
+	get_args(args)
+	if check_for_args(args) {
+		input(args)
 	}
 }

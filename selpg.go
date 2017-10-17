@@ -155,11 +155,15 @@ func type1(in_path *bufio.Reader, out_path *os.File, args *selpg) {
 			/* line, err := buff.ReadString('\n') //以'\n'为结束符读入一行*/
 			lh, err := in_path.ReadString('\n')
 			if err != nil {
+				/*stdin是标准输入，stdout是标准输出，stderr是标准错误输出。
+				大多数的命令行程序从stdin输入，输出到stdout或stderr*/
 				fmt.Fprintln(os.Stderr, "Error:", "error occurs in out_path")
+				/*这里错误将导致无法执行，必须return*/
 				return
 			}
 			if args.out_file != "" {
 				_, err = std_input.Write([]byte(lh))
+				/*line 的数量不够会影响结果，但是不会影响程序执行*/
 				if err != nil {
 					fmt.Fprintln(os.Stderr, "Error:", "line is not enough")
 				}					

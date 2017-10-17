@@ -5,3 +5,4 @@
 # selpg设计思想
 ## 输入
 通过初始化一个struct类型获得输入args
+![image](https://github.com/lqAsuna/Selpg_golang/blob/master/L1WDZ06JX2P2%2408NI~UK%7B%259.png)

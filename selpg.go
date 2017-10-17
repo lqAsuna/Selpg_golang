@@ -188,7 +188,7 @@ func type2(in_path *bufio.Reader, out_path *os.File, args *selpg) {
 		if args.out_file != "" {
 			_, e := std_input.Write([]byte(line))
 			if e != nil {
-				fmt.Fprint(os.Stderr, "error=>", e.Error())
+				fmt.Fprint(os.Stderr, "Error:", e.Error())
 			}
 			continue
 		}
